@@ -15,6 +15,41 @@ import messages from './i18n';
 import './index.scss';
 import BulkEmailTool from './components/bulk-email-tool';
 import PageContainer from './components/page-container/PageContainer';
+import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
+import { useState, useEffect } from 'react';
+import RestrictionPage from './restriction-page/RestrictionPage';
+
+const RestrictionWrapper = () => {
+  const [hasProfileCompleted, setHasProfileCompleted] = useState(true);
+  const [canAccessPage, setCanAccessPage] = useState(true);
+
+  useEffect(() => {
+    const { LMS_BASE_URL } = getConfig();
+
+    const loadProfileCompletion = async () => {
+      try {
+        const client = getAuthenticatedHttpClient();
+        const { data } = await client.get(`${LMS_BASE_URL}/profile/progress/?role=student`);
+        if (data?.percentage === 100) {
+          setHasProfileCompleted(true);
+        } else {
+          setHasProfileCompleted(false);
+        }
+        setCanAccessPage(data.hidden);
+
+      } catch (err) {
+        console.error('Failed to load profile progress:', err);
+        setHasProfileCompleted(false);
+      }
+    };
+
+    loadProfileCompletion();
+  }, []);
+
+  if (!hasProfileCompleted && !canAccessPage) {
+    return <RestrictionPage />;
+  }
+};
 
 subscribe(APP_READY, () => {
   const root = createRoot(document.getElementById('root'));
@@ -22,6 +57,7 @@ subscribe(APP_READY, () => {
   root.render(
     <StrictMode>
       <AppProvider>
+        <RestrictionWrapper />
         <Helmet>
           <link rel="shortcut icon" href={getConfig().FAVICON_URL} type="image/x-icon" />
         </Helmet>
