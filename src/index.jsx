@@ -18,7 +18,6 @@ import PageContainer from './components/page-container/PageContainer';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import { useState, useEffect } from 'react';
 import RestrictionPage from './restriction-page/RestrictionPage';
-import { getConfig } from '@edx/frontend-platform';
 
 const RestrictionWrapper = () => {
   const [hasProfileCompleted, setHasProfileCompleted] = useState(true);
